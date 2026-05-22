@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
   },
   "keywords": [],
   "author": "",
@@ -23,12 +22,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.9.1",
-    "@types/pg": "^8.20.0",
-    "prisma": "^7.8.0",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^6.0.3"
+    "nodemon": "^3.1.14",
+    "prisma": "^7.8.0"
   }
 }
