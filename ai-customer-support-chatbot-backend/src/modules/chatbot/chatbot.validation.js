@@ -1,5 +1,5 @@
 const { z } = require("zod");
-const { SenderType } = require("../../generated");
+const { SenderType } = require("@prisma/client");
 
 const createConversationSchema = z.object({
   customerId: z.string().trim().min(1, "Customer ID cannot be empty").optional().nullable(),
