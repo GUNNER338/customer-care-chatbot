@@ -33,3 +33,19 @@ export interface MessageResponse {
   content: string;
   createdAt: Date;
 }
+
+export interface ChatRequest {
+  conversationId?: string;
+  startNewConversation?: boolean;
+  message: string;
+  customerId?: string | null;
+  senderId?: string | null;
+}
+
+export interface ChatResponse {
+  success: boolean;
+  conversationId: string;
+  response: string;
+  isNewConversation?: boolean;
+  startNewConversation?: boolean;
+}

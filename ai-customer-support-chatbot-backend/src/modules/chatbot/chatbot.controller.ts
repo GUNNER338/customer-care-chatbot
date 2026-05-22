@@ -3,7 +3,8 @@ import { ChatbotService } from "./chatbot.service";
 import { 
   createConversationSchema, 
   createMessageSchema, 
-  uuidParamSchema 
+  uuidParamSchema,
+  chatRequestSchema
 } from "./chatbot.validation";
 
 /**
@@ -115,6 +116,27 @@ export class ChatbotController {
         success: true,
         data: conversation,
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Controller for the unified chat endpoint.
+   * POST /api/chatbot/chat
+   */
+  public chat = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      // Validate request payload
+      const validatedBody = chatRequestSchema.parse(req.body);
+
+      const responsePayload = await this.chatbotService.handleChatMessage(validatedBody);
+
+      res.status(200).json(responsePayload);
     } catch (error) {
       next(error);
     }

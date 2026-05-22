@@ -29,3 +29,14 @@ export const createMessageSchema = z.object({
 export const uuidParamSchema = z.object({
   id: z.string().uuid("Invalid ID format (must be a valid UUID)"),
 });
+
+/**
+ * Zod validation schema for unified Chat API request.
+ */
+export const chatRequestSchema = z.object({
+  conversationId: z.string().uuid("Invalid conversationId format (must be a valid UUID)").optional(),
+  startNewConversation: z.boolean().optional(),
+  message: z.string().min(1, "message must be at least 1 character long").max(5000, "message cannot exceed 5000 characters"),
+  customerId: z.string().trim().min(1, "customerId cannot be empty").optional().nullable(),
+  senderId: z.string().trim().min(1, "senderId cannot be empty").optional().nullable(),
+});

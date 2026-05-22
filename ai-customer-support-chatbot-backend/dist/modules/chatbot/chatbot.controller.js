@@ -85,5 +85,20 @@ class ChatbotController {
             next(error);
         }
     };
+    /**
+     * Controller for the unified chat endpoint.
+     * POST /api/chatbot/chat
+     */
+    chat = async (req, res, next) => {
+        try {
+            // Validate request payload
+            const validatedBody = chatbot_validation_1.chatRequestSchema.parse(req.body);
+            const responsePayload = await this.chatbotService.handleChatMessage(validatedBody);
+            res.status(200).json(responsePayload);
+        }
+        catch (error) {
+            next(error);
+        }
+    };
 }
 exports.ChatbotController = ChatbotController;

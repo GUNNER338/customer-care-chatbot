@@ -595,6 +595,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const ConversationScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
+  title: 'title',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

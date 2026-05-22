@@ -87,5 +87,65 @@ class ChatbotService {
         }
         return conversation;
     }
+    /**
+     * Handles the unified chat API logic: creates new conversations,
+     * stores user messages, and generates bot responses.
+     *
+     * @param input - The chat request payload.
+     */
+    async handleChatMessage(input) {
+        const { conversationId, startNewConversation, message, customerId, senderId } = input;
+        let currentConversationId = conversationId;
+        let isNew = false;
+        if (startNewConversation || !currentConversationId) {
+            // Create new conversation
+            const conversation = await prisma_1.default.conversation.create({
+                data: {
+                    customerId: customerId || null,
+                    title: message.substring(0, 50) || "New Chat",
+                    status: "ACTIVE",
+                },
+            });
+            currentConversationId = conversation.id;
+            isNew = true;
+        }
+        else {
+            // Verify existing conversation
+            const conversationExists = await prisma_1.default.conversation.findUnique({
+                where: { id: currentConversationId },
+            });
+            if (!conversationExists) {
+                throw new Error(`Conversation with ID ${currentConversationId} not found`);
+            }
+        }
+        // Save user message
+        await prisma_1.default.message.create({
+            data: {
+                conversationId: currentConversationId,
+                senderType: "USER",
+                senderId: senderId || null,
+                content: message,
+            },
+        });
+        // Generate bot response (simulated for now, pending Gemini integration)
+        const botResponseContent = isNew
+            ? "Hello! How can I help you today?"
+            : "Please share your order ID or describe your issue in more detail.";
+        // Save bot message
+        await prisma_1.default.message.create({
+            data: {
+                conversationId: currentConversationId,
+                senderType: "BOT",
+                senderId: "chatbot_v1",
+                content: botResponseContent,
+            },
+        });
+        return {
+            success: true,
+            conversationId: currentConversationId,
+            response: botResponseContent,
+            ...(isNew ? (startNewConversation ? { startNewConversation: true } : { isNewConversation: true }) : {}),
+        };
+    }
 }
 exports.ChatbotService = ChatbotService;

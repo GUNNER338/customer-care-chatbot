@@ -12,4 +12,6 @@ router.post("/messages", controller.createMessage);
 router.get("/conversations/:id/messages", controller.getMessages);
 // Retrieve details of a conversation (including aggregated message count)
 router.get("/conversations/:id", controller.getConversation);
+// Unified chat endpoint for managing conversations
+router.post("/chat", controller.chat);
 exports.default = router;

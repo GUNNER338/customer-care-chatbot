@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uuidParamSchema = exports.createMessageSchema = exports.createConversationSchema = void 0;
+exports.chatRequestSchema = exports.uuidParamSchema = exports.createMessageSchema = exports.createConversationSchema = void 0;
 const zod_1 = require("zod");
 const generated_1 = require("../../generated");
 /**
@@ -28,4 +28,14 @@ exports.createMessageSchema = zod_1.z.object({
  */
 exports.uuidParamSchema = zod_1.z.object({
     id: zod_1.z.string().uuid("Invalid ID format (must be a valid UUID)"),
+});
+/**
+ * Zod validation schema for unified Chat API request.
+ */
+exports.chatRequestSchema = zod_1.z.object({
+    conversationId: zod_1.z.string().uuid("Invalid conversationId format (must be a valid UUID)").optional(),
+    startNewConversation: zod_1.z.boolean().optional(),
+    message: zod_1.z.string().min(1, "message must be at least 1 character long").max(5000, "message cannot exceed 5000 characters"),
+    customerId: zod_1.z.string().trim().min(1, "customerId cannot be empty").optional().nullable(),
+    senderId: zod_1.z.string().trim().min(1, "senderId cannot be empty").optional().nullable(),
 });
