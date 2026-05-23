@@ -8,7 +8,7 @@ node_modules/
 # Firebase / Google Cloud service‑account secrets
 # ----------------------------------------------------------------------
 # Ignore only the admin SDK JSON files that start with “auth-”
-src/config/auth-*.json
+src/config/firebase-service-account.json
 
 # Keep other JSON config files that are needed
 !src/config/firebase.js
