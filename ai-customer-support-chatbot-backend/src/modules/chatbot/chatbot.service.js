@@ -10,6 +10,27 @@ class ChatbotService {
     });
   }
 
+  async getUserConversations(customerId) {
+    if (!customerId) return [];
+    return prisma.conversation.findMany({
+      where: { customerId },
+      orderBy: { updatedAt: "desc" },
+    });
+  }
+
+  async renameConversation(conversationId, title) {
+    return prisma.conversation.update({
+      where: { id: conversationId },
+      data: { title },
+    });
+  }
+
+  async deleteConversation(conversationId) {
+    return prisma.conversation.delete({
+      where: { id: conversationId },
+    });
+  }
+
   async createMessage(input) {
     const { conversationId, senderType, senderId, content } = input;
 

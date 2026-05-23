@@ -29,9 +29,14 @@ const chatRequestSchema = z.object({
   senderId: z.string().trim().min(1, "senderId cannot be empty").optional().nullable(),
 });
 
+const renameConversationSchema = z.object({
+  title: z.string().trim().min(1, "title cannot be empty").max(100, "title cannot exceed 100 characters"),
+});
+
 module.exports = {
   createConversationSchema,
   createMessageSchema,
   uuidParamSchema,
   chatRequestSchema,
+  renameConversationSchema,
 };
