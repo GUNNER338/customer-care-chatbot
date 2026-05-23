@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const chatbotRoutes = require("./modules/chatbot/chatbot.routes");
+const authRoutes = require("./modules/auth/auth.routes");
 const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
@@ -17,6 +18,9 @@ app.get("/health", (_req, res) => {
   });
 });
 
+// Auth Module Routes
+app.use("/api/auth", authRoutes);
+
 // Chatbot Module Routes
 app.use("/api/chatbot", chatbotRoutes);
 
@@ -24,3 +28,4 @@ app.use("/api/chatbot", chatbotRoutes);
 app.use(errorHandler);
 
 module.exports = app;
+

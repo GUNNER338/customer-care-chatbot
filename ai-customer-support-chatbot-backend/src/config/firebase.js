@@ -7,7 +7,7 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 } else {
   // Local development fallback
-  serviceAccount = require("./firebase-service-account.json");
+  serviceAccount = require("./auth-322b2-firebase-adminsdk-bas2w-f6d8d70ba3.json");
 }
 
 if (!admin.apps.length) {
