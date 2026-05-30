@@ -15,10 +15,12 @@ const errorHandler = (error, _req, res, _next) => {
     return;
   }
 
-  res.status(500).json({
+  const statusCode = error.statusCode || 500;
+  res.status(statusCode).json({
     success: false,
     message: error.message || "An unexpected internal server error occurred.",
   });
 };
 
 module.exports = { errorHandler };
+

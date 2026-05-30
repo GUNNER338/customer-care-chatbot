@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const chatbotRoutes = require("./modules/chatbot/chatbot.routes");
 const authRoutes = require("./modules/auth/auth.routes");
+const intentRoutes = require("./modules/intents/intent.routes");
 const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
@@ -24,8 +25,12 @@ app.use("/api/auth", authRoutes);
 // Chatbot Module Routes
 app.use("/api/chatbot", chatbotRoutes);
 
+// Intent Module Routes
+app.use("/api", intentRoutes);
+
 // Centralized Error Handling Middleware (must be registered last)
 app.use(errorHandler);
 
 module.exports = app;
+
 
