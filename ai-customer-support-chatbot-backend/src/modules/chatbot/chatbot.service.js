@@ -111,7 +111,7 @@ class ChatbotService {
       }
     }
 
-    await prisma.message.create({
+    const userMessage = await prisma.message.create({
       data: {
         conversationId: currentConversationId,
         senderType: "USER",
@@ -123,12 +123,58 @@ class ChatbotService {
     // Call the NLP recognition engine
     const nlpResult = await nlpIntentService.processMessage(message);
 
+    // Persist classification data
+    if (nlpResult.intent) {
+      await prisma.messageClassification.create({
+        data: {
+          messageId: userMessage.id,
+          intent: nlpResult.intent,
+          confidence: nlpResult.confidence || 0.0,
+          reasoning: nlpResult.reasoning || null
+        }
+      });
+    }
+
+    // --- Entity Extraction System ---
+    const entityService = require("../nlp/entity-extraction/entity.service");
+    const entityRepository = require("../nlp/entity-extraction/entity.repository");
+
+    const entities = await entityService.extractEntities(message, nlpResult.intent);
+    const entityType = entityService.getEntityTypeFromIntent(nlpResult.intent);
+
+    // Save extracted entities to DB
+    for (const [key, value] of Object.entries(entities)) {
+      await entityRepository.saveEntity({
+        conversationId: currentConversationId,
+        messageId: userMessage.id,
+        entityType,
+        entityKey: key,
+        entityValue: value,
+        confidence: nlpResult.confidence || 0.95
+      });
+    }
+
+    // Lead Generation Readiness
+    let leadCandidate = null;
+    if (entityType === "employer") {
+      // Check if essential employer entities exist to form a lead
+      if (entities.companyName || entities.jobTitle || entities.hiringCount || entities.location) {
+        leadCandidate = {
+          companyName: entities.companyName || null,
+          jobTitle: entities.jobTitle || null,
+          hiringCount: entities.hiringCount || null,
+          location: entities.location || null
+        };
+        console.log("Lead Generation Readiness: Candidate object prepared ->", leadCandidate);
+      }
+    }
+
     let botResponseContent;
     if (nlpResult.intent !== "unknown" && nlpResult.response) {
       botResponseContent = nlpResult.response;
     } else {
       botResponseContent = isNew 
-        ? "Hello! Welcome to our customer support. How can I help you today?" 
+        ? "Hello! Welcome to our Elements HR support. How can I help you today?" 
         : "I'm sorry, I didn't quite catch that. Could you describe your issue in more detail or ask another question?";
     }
 
@@ -147,6 +193,8 @@ class ChatbotService {
       response: botResponseContent,
       intent: nlpResult.intent !== "unknown" ? nlpResult.intent : undefined,
       confidence: nlpResult.intent !== "unknown" ? nlpResult.confidence : undefined,
+      entities: Object.keys(entities).length > 0 ? entities : undefined,
+      leadCandidate: leadCandidate || undefined,
       ...(isNew ? (startNewConversation ? { startNewConversation: true } : { isNewConversation: true }) : {}),
     };
   }

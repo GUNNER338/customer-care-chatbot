@@ -1,79 +1,86 @@
-class ClassifierService {
+// Using built-in fetch (Node 18+)
+
+/**
+ * GeminiClassifierService
+ * Provides intent classification using Gemini Pro model.
+ *
+ * Intents are defined for the Elements HR Services (EHRS) domain.
+ */
+class GeminiClassifierService {
   constructor() {
-    this.intentKeywords = {
-      greeting: [
-        "hello", "hi", "hey", "greetings", "good morning", "good afternoon", "good evening", "howdy", "whats up"
-      ],
-      refund_request: [
-        "refund", "money back", "cancel order", "reimbursement", "cancellation", "chargeback", "cancel my subscription", "refunds", "cancel"
-      ],
-      order_tracking: [
-        "track order", "where is my order", "shipment", "delivery status", "package status", "tracking number", "shipped", "when will it arrive", "track", "tracking"
-      ],
-      password_reset: [
-        "password reset", "reset password", "forgot password", "change password", "cannot log in", "reset credentials", "reset my login", "password", "reset", "sign in", "signing in", "login", "log in", "account access", "cannot access account", "unable to access", "can't log in"
-      ],
-      human_support: [
-        "human support", "speak to human", "live agent", "support agent", "representative", "real person", "talk to agent", "human", "agent", "representative"
-      ],
-      product_information: [
-        "product info", "about product", "specifications", "features", "details", "catalog", "warranty", "product"
-      ],
-      billing_issue: [
-        "billing", "invoice", "payment failed", "charged twice", "wrong charge", "double billing", "overcharged", "receipt", "payment method", "payment", "charge"
-      ],
-      technical_support: [
-        "technical support", "error", "bug", "app crash", "broken link", "not loading", "glitch", "website down", "crash", "technical"
-      ]
-    };
+    // List of all possible intents for EHRS
+    this.intents = [
+      // Employer Side
+      "hiring_request",
+      "staffing_services",
+      "executive_search",
+      "talent_acquisition",
+      "payroll_services",
+      "recruitment_outsourcing",
+      "talent_mapping",
+      // Candidate Side
+      "job_search",
+      "resume_help",
+      "interview_preparation",
+      "career_transition",
+      "salary_negotiation",
+      "application_status",
+      // General
+      "greeting",
+      "company_information",
+      "office_location",
+      "contact_information",
+      "human_support",
+    ];
+    this.apiKey = process.env.GEMINI_API_KEY;
+this.endpoint =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
   }
 
-  classify(text) {
-    if (!text) {
-      return { intent: "unknown", confidence: 0 };
-    }
+  /** Build prompt for Gemini classification */
+  buildPrompt(text) {
+    const intentList = this.intents.map(i => `- ${i}`).join("\n");
+    return `You are an HR & Recruitment assistant. Classify the following user message into one of the intents below and provide a confidence score (0.0-1.0). Return ONLY a JSON object with keys "intent" and "confidence".
 
-    const normalizedText = text.toLowerCase().trim();
+Intents:\n${intentList}\n\nUser message: "${text}"`;
+  }
 
-    let bestIntent = "unknown";
-    let maxMatches = 0;
-
-    // Check each intent's keywords/phrases
-    for (const [intent, keywords] of Object.entries(this.intentKeywords)) {
-      let matches = 0;
-      for (const keyword of keywords) {
-        if (keyword.includes(" ")) {
-          // Phrase match (exact substring)
-          if (normalizedText.includes(keyword)) {
-            matches += 2; // heavier weight for phrase matches!
-          }
-        } else {
-          // Word match with word boundaries to avoid false positives (like "hi" in "shipping")
-          const regex = new RegExp(`\\b${keyword}\\b`, "i");
-          if (regex.test(normalizedText)) {
-            matches += 1;
-          }
-        }
-      }
-
-      if (matches > maxMatches) {
-        maxMatches = matches;
-        bestIntent = intent;
-      }
-    }
-
-    if (maxMatches === 0) {
-      return { intent: "unknown", confidence: 0 };
-    }
-
-    // Assign standard confidence of 0.85 (0.90 if multi-phrase match occurred)
-    const confidence = maxMatches >= 2 ? 0.90 : 0.85;
-
-    return {
-      intent: bestIntent,
-      confidence
+  async callGemini(prompt) {
+    const url = `${this.endpoint}?key=${this.apiKey}`;
+    const body = {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.0, responseMimeType: "application/json" },
     };
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+    const data = await response.json();
+    const jsonStr = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    return JSON.parse(jsonStr);
+  }
+
+  /** Classify user text and return intent with confidence */
+  async classify(text) {
+    if (!text) return { intent: "unknown", confidence: 0 };
+    const prompt = this.buildPrompt(text);
+    try {
+      const result = await this.callGemini(prompt);
+      const confidence = Math.min(Math.max(parseFloat(result.confidence), 0), 1);
+      const intent = this.intents.includes(result.intent) ? result.intent : "unknown";
+      if (confidence > 0.75) {
+        return { intent, confidence };
+      }
+      return { intent: "clarification_needed", confidence };
+    } catch (e) {
+      console.error("Gemini classification failed:", e);
+      return { intent: "unknown", confidence: 0 };
+    }
   }
 }
 
-module.exports = new ClassifierService();
+module.exports = new GeminiClassifierService();
