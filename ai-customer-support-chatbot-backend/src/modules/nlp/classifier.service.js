@@ -11,7 +11,7 @@ class ClassifierService {
         "track order", "where is my order", "shipment", "delivery status", "package status", "tracking number", "shipped", "when will it arrive", "track", "tracking"
       ],
       password_reset: [
-        "password reset", "reset password", "forgot password", "change password", "cannot log in", "reset credentials", "reset my login", "password", "reset"
+        "password reset", "reset password", "forgot password", "change password", "cannot log in", "reset credentials", "reset my login", "password", "reset", "sign in", "signing in", "login", "log in", "account access", "cannot access account", "unable to access", "can't log in"
       ],
       human_support: [
         "human support", "speak to human", "live agent", "support agent", "representative", "real person", "talk to agent", "human", "agent", "representative"

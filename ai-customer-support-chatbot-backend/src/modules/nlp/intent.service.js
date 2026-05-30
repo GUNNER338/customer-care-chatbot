@@ -1,4 +1,5 @@
 const classifierService = require("./classifier.service");
+const geminiClassifierService = require("./gemini-classifier.service");
 const intentRepository = require("../intents/intent.repository");
 
 class NlpIntentService {
@@ -11,8 +12,17 @@ class NlpIntentService {
       };
     }
 
-    // 1. Classify the user's message
-    const classification = classifierService.classify(messageText);
+    // 1. Classify the user's message with the high-speed keyword classifier
+    let classification = classifierService.classify(messageText);
+
+    // 2. Hybrid Architecture: if keyword match confidence is below threshold (0.80), invoke Gemini
+    if (classification.intent === "unknown" || classification.confidence < 0.80) {
+      console.log(`Keyword classifier confidence is below threshold (${classification.confidence}). Falling back to Gemini AI classifier...`);
+      const geminiResult = await geminiClassifierService.classify(messageText);
+      if (geminiResult && geminiResult.intent !== "unknown") {
+        classification = geminiResult;
+      }
+    }
 
     if (classification.intent === "unknown" || classification.confidence === 0) {
       return {
