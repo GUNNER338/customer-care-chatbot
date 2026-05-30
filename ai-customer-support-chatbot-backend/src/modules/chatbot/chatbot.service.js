@@ -1,4 +1,5 @@
 const prisma = require("../../config/prisma");
+const nlpIntentService = require("../nlp/intent.service");
 
 class ChatbotService {
   async createConversation(customerId) {
@@ -119,9 +120,17 @@ class ChatbotService {
       },
     });
 
-    const botResponseContent = isNew 
-      ? "Hello! How can I help you today?" 
-      : "Please share your order ID or describe your issue in more detail.";
+    // Call the NLP recognition engine
+    const nlpResult = await nlpIntentService.processMessage(message);
+
+    let botResponseContent;
+    if (nlpResult.intent !== "unknown" && nlpResult.response) {
+      botResponseContent = nlpResult.response;
+    } else {
+      botResponseContent = isNew 
+        ? "Hello! Welcome to our customer support. How can I help you today?" 
+        : "I'm sorry, I didn't quite catch that. Could you describe your issue in more detail or ask another question?";
+    }
 
     await prisma.message.create({
       data: {
@@ -136,6 +145,8 @@ class ChatbotService {
       success: true,
       conversationId: currentConversationId,
       response: botResponseContent,
+      intent: nlpResult.intent !== "unknown" ? nlpResult.intent : undefined,
+      confidence: nlpResult.intent !== "unknown" ? nlpResult.confidence : undefined,
       ...(isNew ? (startNewConversation ? { startNewConversation: true } : { isNewConversation: true }) : {}),
     };
   }
