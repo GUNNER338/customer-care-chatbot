@@ -22,8 +22,13 @@ class NlpIntentService {
     // 2. Hybrid Fallback: Invoke Gemini if keyword match is low/unknown
     if (classification.intent === "unknown" || classification.confidence < 0.80) {
       console.log("Keyword classifier confidence is below threshold. Falling back to Gemini AI classifier...");
-      classification = await classifierService.classify(messageText);
-      reasoning = classification.reasoning || "Gemini generative classification";
+      try {
+        classification = await classifierService.classify(messageText);
+        reasoning = classification.reasoning || "Gemini generative classification";
+      } catch (err) {
+        console.error("Gemini classification failed (possibly rate limited), falling back to keyword match:", err.message);
+        // Fallback to keyword match (already captured in classification and reasoning variables above)
+      }
     }
 
     // 3. Evaluate Confidence Thresholds
@@ -44,6 +49,16 @@ class NlpIntentService {
     const finalIntent = evaluation.intent; 
 
     // 5. High Confidence -> Fetch predefined response from Database
+    const INTERNAL_INTENTS = ["frustration"];
+    if (INTERNAL_INTENTS.includes(finalIntent)) {
+      return {
+        intent: finalIntent,
+        confidence: classification.confidence,
+        reasoning,
+        response: null
+      };
+    }
+
     try {
       const intentRecord = await intentRepository.findByName(finalIntent);
       

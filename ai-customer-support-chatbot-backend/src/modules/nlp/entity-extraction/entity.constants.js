@@ -33,6 +33,8 @@ const REGEX_PATTERNS = {
   EXPERIENCE: /(\d+)\s*(?:\+|-)?\s*(?:years?|yrs?)(?:\s*of)?\s*experience/i,
   // Extract notice period days/months
   NOTICE_PERIOD: /(\d+)\s*(?:days?|months?|weeks?)\s*(?:notice)?/i,
+  // Extract hiring count
+  HIRING_COUNT: /(?:need|looking for|hire|require|want)\s+(\d+)/i,
 };
 
 module.exports = {

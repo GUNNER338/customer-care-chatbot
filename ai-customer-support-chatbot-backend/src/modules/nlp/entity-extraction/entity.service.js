@@ -45,6 +45,10 @@ class EntityService {
       const match = message.match(REGEX_PATTERNS.NOTICE_PERIOD);
       if (match) extracted[ENTITY_KEYS.NOTICE_PERIOD] = match[0];
     }
+    if (expectedKeys.includes(ENTITY_KEYS.HIRING_COUNT)) {
+      const match = message.match(REGEX_PATTERNS.HIRING_COUNT);
+      if (match) extracted[ENTITY_KEYS.HIRING_COUNT] = match[1];
+    }
 
     // Determine missing keys
     const missingKeys = expectedKeys.filter(key => !extracted[key]);

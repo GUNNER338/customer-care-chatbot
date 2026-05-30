@@ -27,6 +27,7 @@ model Conversation {
   updatedAt  DateTime           @updatedAt
   messages   Message[]
   entities   ConversationEntity[]
+  escalations Escalation[]
 
   @@map("conversations")
 }
@@ -54,8 +55,11 @@ model User {
   email       String   @unique
   fullName    String?
   isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  candidateProfile  CandidateProfile?
+  escalations       Escalation[]
+  memories          UserMemory[]
 
   @@map("users")
 }
@@ -114,3 +118,145 @@ model MessageClassification {
   @@map("message_classifications")
 }
 
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  REJECTED
+}
+
+model Lead {
+  id             String     @id @default(uuid())
+  conversationId String?
+  userId         String?
+  name           String?
+  email          String?
+  phone          String?
+  companyName    String?
+  intent         String
+  requirement    String?
+  status         LeadStatus @default(NEW)
+  source         String     @default("CHATBOT")
+  notes          String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  escalations    Escalation[]
+
+  @@index([conversationId])
+  @@index([status])
+  @@map("leads")
+}
+
+model CandidateProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  currentRole       String?
+  experience        Int?
+  currentLocation   String?
+  preferredLocation String?
+  expectedSalary    String?
+  noticePeriod      String?
+  education         String?
+  skills            Json?
+  summary           String?
+  resumeUrl         String?
+  linkedinUrl       String?
+  profileCompletion Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id])
+  escalations       Escalation[]
+  resumes           Resume[]
+
+  @@map("candidate_profiles")
+}
+
+enum EscalationStatus {
+  PENDING
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum EscalationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Escalation {
+  id                 String             @id @default(uuid())
+  conversationId     String
+  userId             String?
+  leadId             String?
+  candidateProfileId String?
+  reason             String?
+  priority           EscalationPriority @default(MEDIUM)
+  status             EscalationStatus   @default(PENDING)
+  assignedRecruiter  String?
+  assignedAt         DateTime?
+  resolvedAt         DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  conversation       Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user               User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  lead               Lead?              @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  candidateProfile   CandidateProfile?  @relation(fields: [candidateProfileId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId])
+  @@index([status])
+  @@index([priority])
+  @@map("escalations")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  eventType String
+  eventName String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("analytics_events")
+}
+
+model Resume {
+  id          String   @id @default(uuid())
+  candidateId String
+  fileName    String
+  fileUrl     String
+  fileType    String
+  parsedData  Json?
+  analysis    Json?
+  uploadedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@map("resumes")
+}
+
+model UserMemory {
+  id           String    @id @default(uuid())
+  userId       String
+  memoryType   String    // e.g., "candidate", "employer", "behavioral"
+  memoryKey    String    // e.g., "role", "experience", "companyName"
+  memoryValue  Json      
+  confidence   Float     @default(1)
+  lastUsedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_memories")
+}

@@ -25,6 +25,30 @@ app.use("/api/auth", authRoutes);
 // Chatbot Module Routes
 app.use("/api/chatbot", chatbotRoutes);
 
+// Leads Module Routes
+const leadRoutes = require("./modules/leads/lead.routes");
+app.use("/api/leads", leadRoutes);
+
+// Candidates Module Routes
+const candidateRoutes = require("./modules/candidates/candidate.routes");
+app.use("/api/candidates", candidateRoutes);
+
+// Escalation Module Routes
+const escalationRoutes = require("./modules/escalation/escalation.routes");
+app.use("/api/escalations", escalationRoutes);
+
+// Analytics Module Routes
+const analyticsRoutes = require("./modules/analytics/analytics.routes");
+app.use("/api/analytics", analyticsRoutes);
+
+// Resume Module Routes
+const resumeRoutes = require("./modules/resume/resume.routes");
+app.use("/api/resume", resumeRoutes);
+
+// Memory Module Routes
+const memoryRoutes = require("./modules/memory/memory.routes");
+app.use("/api/memory", memoryRoutes);
+
 // Intent Module Routes
 app.use("/api", intentRoutes);
 

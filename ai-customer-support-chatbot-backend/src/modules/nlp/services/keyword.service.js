@@ -12,7 +12,8 @@ class KeywordService {
     // Map regex patterns to intents
     const patterns = [
       { intent: "greeting", regex: /^(hello|hi|hey|greetings|good morning|good afternoon)\b/i },
-      { intent: "human_support", regex: /\b(human|agent|recruiter|person|connect recruiter|talk to someone|live agent|customer service)\b/i },
+      { intent: "human_support", regex: /\b(human|agent|recruiter|person|connect recruiter|talk to someone|live agent|customer support|customer service|speak to recruiter|talk to recruiter|connect me|call me)\b/i },
+      { intent: "frustration", regex: /\b(not helpful|useless|bad service|frustrating|terrible|annoying|stupid chatbot)\b/i },
       { intent: "career_transition", regex: /\b(career change|transition|new industry)\b/i },
       { intent: "salary_negotiation", regex: /\b(negotiate|salary offer|counter offer)\b/i },
       { intent: "resume_help", regex: /\b(resume|cv|resume review|cv review|format resume)\b/i },
